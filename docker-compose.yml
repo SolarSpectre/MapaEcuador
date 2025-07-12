@@ -1,0 +1,85 @@
+services:
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: ecuador_mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: ecuador_db
+      MYSQL_USER: ecuador_user
+      MYSQL_PASSWORD: ecuador_pass
+      LANG: en_US.UTF-8
+      LC_ALL: en_US.UTF-8
+      MYSQL_CHARACTER_SET_SERVER: utf8mb4
+      MYSQL_COLLATION_SERVER: utf8mb4_unicode_ci
+      MYSQL_DEFAULT_CHARACTER_SET: utf8mb4
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - ecuador_network
+
+  # Flask Webapp 1
+  flask_app1:
+    build:
+      context: ./flask_app
+      dockerfile: Dockerfile
+    container_name: ecuador_flask_1
+    environment:
+      - FLASK_APP=app.py
+      - FLASK_ENV=production
+      - MYSQL_HOST=mysql
+      - MYSQL_USER=ecuador_user
+      - MYSQL_PASSWORD=ecuador_pass
+      - MYSQL_DATABASE=ecuador_db
+      - GOOGLE_MAPS_API_KEY=${GOOGLE_MAPS_API_KEY}
+    depends_on:
+      - mysql
+    networks:
+      - ecuador_network
+    restart: unless-stopped
+
+  # Flask Webapp 2
+  flask_app2:
+    build:
+      context: ./flask_app
+      dockerfile: Dockerfile
+    container_name: ecuador_flask_2
+    environment:
+      - FLASK_APP=app.py
+      - FLASK_ENV=production
+      - MYSQL_HOST=mysql
+      - MYSQL_USER=ecuador_user
+      - MYSQL_PASSWORD=ecuador_pass
+      - MYSQL_DATABASE=ecuador_db
+      - GOOGLE_MAPS_API_KEY=${GOOGLE_MAPS_API_KEY}
+    depends_on:
+      - mysql
+    networks:
+      - ecuador_network
+    restart: unless-stopped
+
+  # Nginx Load Balancer
+  nginx:
+    image: nginx:alpine
+    container_name: ecuador_nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - flask_app1
+      - flask_app2
+    networks:
+      - ecuador_network
+    restart: unless-stopped
+
+volumes:
+  mysql_data:
+
+networks:
+  ecuador_network:
+    driver: bridge 

@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Provincias del Ecuador</title>
+    <script src="https://maps.googleapis.com/maps/api/js?key={{ api_key }}&libraries=places"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: #e0e0e0;
+        }
+
+        .header {
+            background: rgba(26, 26, 46, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            border-bottom: 1px solid #333;
+        }
+
+        .header h1 {
+            color: #e0e0e0;
+            font-size: 2rem;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+            padding-top: 80px;
+        }
+
+        .map-container {
+            flex: 2;
+            position: relative;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+            border-radius: 0 0 0 20px;
+        }
+
+        .sidebar {
+            flex: 1;
+            background: rgba(26, 26, 46, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 2rem;
+            overflow-y: auto;
+            max-width: 400px;
+            box-shadow: -5px 0 20px rgba(0, 0, 0, 0.3);
+            border-left: 1px solid #333;
+        }
+
+        .search-box {
+            margin-bottom: 2rem;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #444;
+            border-radius: 25px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.1);
+            color: #e0e0e0;
+        }
+
+        .search-box input::placeholder {
+            color: #888;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: #4a9eff;
+            box-shadow: 0 0 0 3px rgba(74, 158, 255, 0.2);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .provinces-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .province-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border-left: 4px solid #4a9eff;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .province-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(74, 158, 255, 0.3);
+        }
+
+        .province-card h3 {
+            color: #e0e0e0;
+            margin-bottom: 0.5rem;
+            font-size: 1.2rem;
+        }
+
+        .province-card p {
+            color: #b0b0b0;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .province-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .stat {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.5rem;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: #888;
+            font-weight: 600;
+        }
+
+        .stat-value {
+            font-size: 1rem;
+            color: #e0e0e0;
+            font-weight: 700;
+        }
+
+        .info-window {
+            max-width: 300px;
+            padding: 1rem;
+            background: rgba(26, 26, 46, 0.95);
+            color: #e0e0e0;
+            border: 1px solid #333;
+        }
+
+        .info-window h3 {
+            color: #e0e0e0;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .info-window p {
+            color: #b0b0b0;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+            color: #4a9eff;
+            font-size: 1.2rem;
+        }
+
+        .error {
+            background: #ff4757;
+            color: white;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+        }
+
+        .stats-summary {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            color: #e0e0e0;
+            padding: 1.5rem;
+            border-radius: 15px;
+            margin-bottom: 2rem;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .stats-summary h2 {
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+            color: #e0e0e0;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .stat-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1rem;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            min-width: 120px;
+            max-width: 180px;
+            word-break: break-word;
+            overflow: hidden;
+        }
+
+        .stat-item .number {
+            font-size: 1.2rem;
+            font-weight: 700;
+            display: block;
+            color: #4a9eff;
+            word-break: break-all;
+            overflow-wrap: break-word;
+            white-space: normal;
+            text-overflow: ellipsis;
+            max-width: 100%;
+        }
+
+        .stat-item .label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            color: #b0b0b0;
+        }
+
+        @media (max-width: 900px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            .stat-item {
+                max-width: 100%;
+                min-width: 0;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                max-width: none;
+                order: -1;
+            }
+            
+            .map-container {
+                height: 60vh;
+            }
+            
+            #map {
+                border-radius: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🗺️ Provincias del Ecuador</h1>
+    </div>
+
+    <div class="container">
+        <div class="map-container">
+            <div id="map"></div>
+        </div>
+        
+        <div class="sidebar">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Buscando provincias...">
+            </div>
+
+            <div class="stats-summary">
+                <h2>Descripcion General de Ecuador</h2>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <span class="number" id="totalProvinces">-</span>
+                        <span class="label">Provincias</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="number" id="totalPopulation">-</span>
+                        <span class="label">Poblacion</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="number" id="totalArea">-</span>
+                        <span class="label">Area (km²)</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="number" id="totalRegions">-</span>
+                        <span class="label">Regiones</span>
+                    </div>
+                </div>
+            </div>
+
+            <div id="provincesList" class="provinces-list">
+                <div class="loading">Cargando provincias...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let map;
+        let markers = [];
+        let provinces = [];
+        let infoWindows = [];
+
+        // Initialize the map
+        function initMap() {
+            // Ecuador center coordinates
+            const ecuadorCenter = { lat: -1.8312, lng: -78.1834 };
+            
+            map = new google.maps.Map(document.getElementById('map'), {
+                zoom: 7,
+                center: ecuadorCenter,
+                styles: [
+                    {
+                        featureType: 'all',
+                        elementType: 'geometry',
+                        stylers: [{ color: '#1a1a2e' }]
+                    },
+                    {
+                        featureType: 'water',
+                        elementType: 'geometry',
+                        stylers: [{ color: '#16213e' }]
+                    },
+                    {
+                        featureType: 'landscape',
+                        elementType: 'geometry',
+                        stylers: [{ color: '#1a1a2e' }]
+                    },
+                    {
+                        featureType: 'road',
+                        elementType: 'geometry',
+                        stylers: [{ color: '#2a2a3e' }]
+                    },
+                    {
+                        featureType: 'poi',
+                        elementType: 'geometry',
+                        stylers: [{ color: '#1a1a2e' }]
+                    },
+                    {
+                        featureType: 'transit',
+                        elementType: 'geometry',
+                        stylers: [{ color: '#2a2a3e' }]
+                    },
+                    {
+                        featureType: 'administrative',
+                        elementType: 'geometry.stroke',
+                        stylers: [{ color: '#4a9eff' }, { weight: 1 }]
+                    },
+                    {
+                        featureType: 'road.highway',
+                        elementType: 'geometry.fill',
+                        stylers: [{ color: '#2a2a3e' }]
+                    },
+                    {
+                        featureType: 'road.highway',
+                        elementType: 'geometry.stroke',
+                        stylers: [{ color: '#4a9eff' }, { weight: 0.5 }]
+                    }
+                ]
+            });
+
+            loadProvinces();
+        }
+
+        // Load provinces from API
+        async function loadProvinces() {
+            try {
+                const response = await fetch('/api/provinces');
+                const result = await response.json();
+                
+                if (result.success) {
+                    provinces = result.data;
+                    displayProvinces();
+                    addMarkersToMap();
+                    updateStats();
+                } else {
+                    showError('Error al cargar las provincias');
+                }
+            } catch (error) {
+                showError('Error conectandose al server: ' + error.message);
+            }
+        }
+
+        // Display provinces in sidebar
+        function displayProvinces() {
+            const container = document.getElementById('provincesList');
+            container.innerHTML = '';
+
+            provinces.forEach(province => {
+                const card = document.createElement('div');
+                card.className = 'province-card';
+                card.innerHTML = `
+                    <h3>${province.name}</h3>
+                    <p><strong>Capital:</strong> ${province.capital}</p>
+                    <p><strong>Region:</strong> ${province.region}</p>
+                    <div class="province-stats">
+                        <div class="stat">
+                            <div class="stat-label">Poblacion</div>
+                            <div class="stat-value">${formatNumber(parseInt(province.population))}</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-label">Area</div>
+                            <div class="stat-value">${formatNumber(parseFloat(province.area_km2))} km²</div>
+                        </div>
+                    </div>
+                `;
+                
+                card.addEventListener('click', () => {
+                    const marker = markers.find(m => m.provinceId === province.id);
+                    if (marker) {
+                        map.setCenter(marker.getPosition());
+                        map.setZoom(10);
+                        google.maps.event.trigger(marker, 'click');
+                    }
+                });
+                
+                container.appendChild(card);
+            });
+        }
+
+        // Add markers to map
+        function addMarkersToMap() {
+            provinces.forEach(province => {
+                const marker = new google.maps.Marker({
+                    position: { lat: parseFloat(province.latitude), lng: parseFloat(province.longitude) },
+                    map: map,
+                    title: province.name,
+                                            icon: {
+                            url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <circle cx="12" cy="12" r="8" fill="#4a9eff" stroke="#1a1a2e" stroke-width="2"/>
+                                    <circle cx="12" cy="12" r="4" fill="#1a1a2e"/>
+                                </svg>
+                            `),
+                            scaledSize: new google.maps.Size(24, 24),
+                            anchor: new google.maps.Point(12, 12)
+                        }
+                });
+
+                marker.provinceId = province.id;
+                markers.push(marker);
+
+                const infoWindow = new google.maps.InfoWindow({
+                    content: `
+                        <div class="info-window">
+                            <h3>${province.name}</h3>
+                            <p><strong>Capital:</strong> ${province.capital}</p>
+                            <p><strong>Region:</strong> ${province.region}</p>
+                            <p><strong>Poblacion:</strong> ${formatNumber(parseInt(province.population))}</p>
+                            <p><strong>Area:</strong> ${formatNumber(parseFloat(province.area_km2))} km²</p>
+                        </div>
+                    `
+                });
+
+                infoWindows.push(infoWindow);
+
+                marker.addListener('click', () => {
+                    infoWindows.forEach(iw => iw.close());
+                    infoWindow.open(map, marker);
+                });
+            });
+        }
+
+        // Update statistics
+        function updateStats() {
+            const totalProvinces = provinces.length;
+            const totalPopulation = provinces.reduce((sum, p) => sum + parseInt(p.population), 0);
+            const totalArea = provinces.reduce((sum, p) => sum + parseFloat(p.area_km2), 0);
+            const totalRegions = new Set(provinces.map(p => p.region)).size;
+
+            document.getElementById('totalProvinces').textContent = totalProvinces;
+            document.getElementById('totalPopulation').textContent = formatNumber(totalPopulation);
+            document.getElementById('totalArea').textContent = formatNumber(totalArea);
+            document.getElementById('totalRegions').textContent = totalRegions;
+        }
+
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const cards = document.querySelectorAll('.province-card');
+            
+            cards.forEach((card, index) => {
+                const provinceName = provinces[index].name.toLowerCase();
+                const capitalName = provinces[index].capital.toLowerCase();
+                
+                if (provinceName.includes(searchTerm) || capitalName.includes(searchTerm)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+
+        // Utility functions
+        function formatNumber(num) {
+            return new Intl.NumberFormat().format(num);
+        }
+
+        function showError(message) {
+            const container = document.getElementById('provincesList');
+            container.innerHTML = `<div class="error">${message}</div>`;
+        }
+
+        // Initialize map when page loads
+        window.addEventListener('load', initMap);
+    </script>
+</body>
+</html> 
