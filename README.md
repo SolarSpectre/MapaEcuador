@@ -1,86 +1,86 @@
-# 🗺️ Ecuador Provinces Map - Docker Application
+# 🗺️ Mapa de Provincias del Ecuador - Aplicación Docker
 
-A modern web application that displays an interactive map of Ecuador with detailed information about all 24 provinces, including capitals, areas, populations, and geographical coordinates. Built with Flask, MySQL, and Nginx load balancer.
+Una aplicación web moderna que muestra un mapa interactivo del Ecuador con información detallada sobre las 24 provincias, incluyendo capitales, áreas, poblaciones y coordenadas geográficas. Construida con Flask, MySQL y Nginx como balanceador de carga.
 
-## 🏗️ Architecture
+## 🏗️ Arquitectura
 
-The application consists of 4 main components:
+La aplicación consta de 4 componentes principales:
 
-- **2 Flask Web Applications**: Identical Flask apps serving the same content for load balancing
-- **MySQL Database**: Stores province information with 24 provinces of Ecuador
-- **Nginx Load Balancer**: Distributes traffic between the two Flask applications
-- **Docker Compose**: Orchestrates all services
+- **2 Aplicaciones Flask**: Aplicaciones Flask idénticas que sirven el mismo contenido para balanceo de carga
+- **Base de Datos MySQL**: Almacena información de las provincias con las 24 provincias del Ecuador
+- **Nginx Balanceador de Carga**: Distribuye el tráfico entre las dos aplicaciones Flask
+- **Docker Compose**: Orquesta todos los servicios
 
 ```
 ┌─────────────────┐    ┌─────────────────┐
 │   Nginx (LB)    │    │   Flask App 1   │
-│   Port 80       │◄──►│   Port 5000     │
+│   Puerto 80     │◄──►│   Puerto 5000   │
 └─────────────────┘    └─────────────────┘
          │                       │
          │              ┌─────────────────┐
          └─────────────►│   Flask App 2   │
-                        │   Port 5000     │
+                        │   Puerto 5000   │
                         └─────────────────┘
                                 │
                         ┌─────────────────┐
                         │   MySQL DB      │
-                        │   Port 3306     │
+                        │   Puerto 3306   │
                         └─────────────────┘
 ```
 
-## 🚀 Features
+## 🚀 Características
 
-- **Interactive Google Maps**: Display Ecuador with province markers
-- **Province Information**: Capital, area, population, and region data
-- **Search Functionality**: Search provinces by name or capital
-- **Responsive Design**: Works on desktop and mobile devices
-- **Load Balancing**: Traffic distributed between two Flask instances
-- **Real-time Statistics**: Overview of Ecuador's demographics
-- **Modern UI**: Beautiful, intuitive interface with smooth animations
+- **Mapa Interactivo de Google Maps**: Muestra el Ecuador con marcadores de provincias
+- **Información de Provincias**: Capital, área, población y datos de región
+- **Funcionalidad de Búsqueda**: Buscar provincias por nombre o capital
+- **Diseño Responsivo**: Funciona en dispositivos de escritorio y móviles
+- **Balanceo de Carga**: Tráfico distribuido entre dos instancias Flask
+- **Estadísticas en Tiempo Real**: Resumen de la demografía del Ecuador
+- **Interfaz Moderna**: Interfaz hermosa e intuitiva con animaciones suaves
+- **Estadísticas Generales**: Resumen de provincias, población total, área total y regiones
 
-## 📋 Prerequisites
+## 📋 Prerrequisitos
 
-- Docker and Docker Compose installed
-- Google Maps API key (free tier available)
+- Docker y Docker Compose instalados
+- Clave API de Google Maps (nivel gratuito disponible)
 
-## 🛠️ Setup Instructions
+## 🛠️ Instrucciones de Configuración
 
-### 1. Clone and Navigate
+### 1. Clonar y Navegar
 ```bash
-cd Tarea
+cd MapaEcuador
 ```
 
-### 2. Set Environment Variables
-Create a `.env` file in the root directory:
+### 2. Configurar Variables de Entorno
+Crear un archivo `.env` en el directorio raíz:
 ```bash
-# Create .env file
-echo "GOOGLE_MAPS_API_KEY=your_google_maps_api_key_here" > .env
+# Crear archivo .env
+echo "GOOGLE_MAPS_API_KEY=tu_clave_api_de_google_maps_aqui" > .env
 ```
 
-**To get a Google Maps API key:**
-1. Go to [Google Cloud Console](https://console.cloud.google.com/)
-2. Create a new project or select existing one
-3. Enable the "Maps JavaScript API"
-4. Create credentials (API key)
-5. Replace `your_google_maps_api_key_here` with your actual API key
+**Para obtener una clave API de Google Maps:**
+1. Ve a [Google Cloud Console](https://console.cloud.google.com/)
+2. Crea un nuevo proyecto o selecciona uno existente
+3. Habilita la "Maps JavaScript API"
+4. Crea credenciales (clave API)
+5. Reemplaza `tu_clave_api_de_google_maps_aqui` con tu clave API real
 
-### 3. Build and Start Services
+### 3. Construir e Iniciar Servicios
 ```bash
-# Build and start all services
+# Construir e iniciar todos los servicios
 docker-compose up --build -d
 
-# Or start without detached mode to see logs
+# O iniciar sin modo detached para ver logs
 docker-compose up --build
 ```
 
-### 4. Access the Application
-- **Main Application**: http://localhost
-- **Database**: localhost:3306 (user: ecuador_user, password: ecuador_pass)
-- **Nginx Status**: http://localhost:8080/nginx_status
+### 4. Acceder a la Aplicación
+- **Aplicación Principal**: http://localhost
+- **Base de Datos**: localhost:3306 (usuario: ecuador_user, contraseña: ecuador_pass)
 
-## 📊 Database Schema
+## 📊 Esquema de Base de Datos
 
-The MySQL database contains a `provinces` table with the following structure:
+La base de datos MySQL contiene una tabla `provinces` con la siguiente estructura:
 
 ```sql
 CREATE TABLE provinces (
@@ -98,181 +98,147 @@ CREATE TABLE provinces (
 );
 ```
 
-### Ecuador's 24 Provinces Included:
+### Las 24 Provincias del Ecuador Incluidas:
 
-**Sierra (Highlands) Region:**
+**Región Sierra (Andes):**
 - Azuay, Bolívar, Cañar, Carchi, Cotopaxi, Chimborazo, Imbabura, Loja, Pichincha, Tungurahua
 
-**Costa (Coast) Region:**
+**Región Costa:**
 - El Oro, Esmeraldas, Guayas, Los Ríos, Manabí, Santa Elena, Santo Domingo de los Tsáchilas
 
-**Amazonía (Amazon) Region:**
+**Región Amazonía:**
 - Morona Santiago, Napo, Orellana, Pastaza, Sucumbíos, Zamora Chinchipe
 
-**Galápagos Region:**
+**Región Galápagos:**
 - Galápagos
 
-## 🔧 API Endpoints
+## 🔧 Endpoints de API
 
-### Get All Provinces
+### Obtener Todas las Provincias
 ```http
 GET /api/provinces
 ```
 
-### Get Specific Province
+### Obtener Provincia Específica
 ```http
 GET /api/province/{id}
 ```
 
-### Health Check
+### Verificación de Salud
 ```http
 GET /api/health
 ```
 
-## 🐳 Docker Commands
+## 🐳 Comandos de Docker
 
-### Start Services
+### Iniciar Servicios
 ```bash
 docker-compose up -d
 ```
 
-### Stop Services
+### Detener Servicios
 ```bash
 docker-compose down
 ```
 
-### View Logs
+### Ver Logs
 ```bash
-# All services
+# Todos los servicios
 docker-compose logs
 
-# Specific service
+# Servicio específico
 docker-compose logs flask_app1
 docker-compose logs nginx
 docker-compose logs mysql
 ```
 
-### Rebuild Services
+### Reconstruir Servicios
 ```bash
 docker-compose up --build -d
 ```
 
-### Access Container Shell
+### Acceder a Shell del Contenedor
 ```bash
-# Flask app
+# Aplicación Flask
 docker-compose exec flask_app1 bash
 
-# Database
+# Base de datos
 docker-compose exec mysql mysql -u ecuador_user -p ecuador_db
 
 # Nginx
 docker-compose exec nginx sh
 ```
 
-## 📁 Project Structure
+## 📁 Estructura del Proyecto
 
 ```
 Tarea/
-├── docker-compose.yml          # Main orchestration file
-├── .env                        # Environment variables (create this)
-├── README.md                   # This file
+├── docker-compose.yml          # Archivo principal de orquestación
+├── .env                        # Variables de entorno (crear este archivo)
+├── README.md                   # Este archivo
 ├── flask_app/
-│   ├── Dockerfile             # Flask app container
-│   ├── requirements.txt       # Python dependencies
-│   ├── app.py                 # Main Flask application
+│   ├── Dockerfile             # Contenedor de la aplicación Flask
+│   ├── requirements.txt       # Dependencias de Python
+│   ├── app.py                 # Aplicación principal Flask
 │   └── templates/
-│       └── index.html         # Web interface
+│       └── index.html         # Interfaz web
 ├── database/
-│   └── init.sql               # Database initialization
+│   └── init.sql               # Inicialización de la base de datos
 └── nginx/
-    └── nginx.conf             # Nginx configuration
+    └── nginx.conf             # Configuración de Nginx
 ```
 
-## 🔍 Monitoring and Debugging
+## 🔍 Monitoreo y Depuración
 
-### Check Service Status
+### Verificar Estado de Servicios
 ```bash
 docker-compose ps
 ```
 
-### Monitor Resource Usage
+### Monitorear Uso de Recursos
 ```bash
 docker stats
 ```
 
-### Database Connection Test
+### Prueba de Conexión a Base de Datos
 ```bash
 docker-compose exec mysql mysql -u ecuador_user -p ecuador_db -e "SELECT COUNT(*) FROM provinces;"
 ```
 
-### Load Balancer Test
+### Prueba de Balanceador de Carga
 ```bash
-# Test multiple requests to see load balancing
+# Probar múltiples solicitudes para ver el balanceo de carga
 for i in {1..10}; do curl -s http://localhost/api/health; echo; done
 ```
 
-## 🚨 Troubleshooting
+## 🚨 Solución de Problemas
 
-### Common Issues
+### Problemas Comunes
 
-1. **Google Maps not loading**
-   - Check if API key is set correctly in `.env`
-   - Verify API key has Maps JavaScript API enabled
+1. **Google Maps no carga**
+   - Verificar si la clave API está configurada correctamente en `.env`
+   - Verificar que la clave API tenga habilitada la Maps JavaScript API
 
-2. **Database connection errors**
-   - Wait for MySQL to fully start (may take 30-60 seconds)
-   - Check logs: `docker-compose logs mysql`
+2. **Errores de conexión a la base de datos**
+   - Esperar a que MySQL inicie completamente (puede tomar 30-60 segundos)
+   - Revisar logs: `docker-compose logs mysql`
 
-3. **Port conflicts**
-   - Ensure ports 80, 3306 are not in use
-   - Change ports in `docker-compose.yml` if needed
+3. **Conflictos de puertos**
+   - Asegurar que los puertos 80, 3306 no estén en uso
+   - Cambiar puertos en `docker-compose.yml` si es necesario
 
-4. **Flask apps not responding**
-   - Check if database is ready: `docker-compose logs flask_app1`
-   - Verify environment variables are set
+4. **Las aplicaciones Flask no responden**
+   - Verificar si la base de datos está lista: `docker-compose logs flask_app1`
+   - Verificar que las variables de entorno estén configuradas
 
-### Reset Everything
+### Reiniciar Todo
 ```bash
-# Stop and remove everything
+# Detener y eliminar todo
 docker-compose down -v
 
-# Remove all images
+# Eliminar todas las imágenes
 docker system prune -a
 
-# Rebuild from scratch
+# Reconstruir desde cero
 docker-compose up --build -d
 ```
-
-## 📈 Performance Features
-
-- **Load Balancing**: Round-robin distribution between Flask apps
-- **Rate Limiting**: API endpoints protected against abuse
-- **Gzip Compression**: Reduced bandwidth usage
-- **Caching Headers**: Optimized static file delivery
-- **Health Checks**: Automatic failover for unhealthy instances
-
-## 🔒 Security Features
-
-- **Security Headers**: XSS protection, content type validation
-- **Rate Limiting**: Prevents API abuse
-- **CORS Configuration**: Proper cross-origin handling
-- **Input Validation**: SQL injection prevention
-- **Environment Variables**: Secure configuration management
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test with `docker-compose up --build`
-5. Submit a pull request
-
-## 📄 License
-
-This project is open source and available under the MIT License.
-
-## 🙏 Acknowledgments
-
-- Data sourced from official Ecuador government statistics
-- Google Maps API for mapping functionality
-- Flask and Nginx communities for excellent documentation 
